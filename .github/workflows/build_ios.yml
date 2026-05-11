@@ -1,0 +1,39 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch: # Để ông có nút nhấn chạy thủ công trên web
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build Archive
+        run: |
+          # Lệnh này để build ra file archive (chưa ký tên)
+          xcodebuild -project Unity-iPhone.xcodeproj \
+                     -scheme Unity-iPhone \
+                     -configuration Release \
+                     -archivePath $PWD/build/Unity-iPhone.xcarchive \
+                     archive \
+                     CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        run: |
+          # Gom file .app vào thư mục Payload để đóng gói thành .ipa
+          mkdir -p Payload
+          cp -R build/Unity-iPhone.xcarchive/Products/Applications/*.app Payload/
+          zip -r Game.ipa Payload
+          
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-game-ipa
+          path: Game.ipa
