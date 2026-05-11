@@ -1,7 +1,7 @@
 name: Build iOS IPA
 
 on:
-  workflow_dispatch: # Để ông có nút nhấn chạy thủ công trên web
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,17 +17,19 @@ jobs:
 
       - name: Build Archive
         run: |
-          # Lệnh này để build ra file archive (chưa ký tên)
+          # Thêm các tham số để bỏ qua kiểm tra Bitcode và ép build cho máy thật
           xcodebuild -project Unity-iPhone.xcodeproj \
                      -scheme Unity-iPhone \
                      -configuration Release \
+                     -sdk iphoneos \
                      -archivePath $PWD/build/Unity-iPhone.xcarchive \
-                     archive \
-                     CODE_SIGNING_ALLOWED=NO
+                     clean archive \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     ENABLE_BITCODE=NO
 
       - name: Export IPA
         run: |
-          # Gom file .app vào thư mục Payload để đóng gói thành .ipa
           mkdir -p Payload
           cp -R build/Unity-iPhone.xcarchive/Products/Applications/*.app Payload/
           zip -r Game.ipa Payload
